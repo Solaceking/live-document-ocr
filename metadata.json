@@ -1,0 +1,7 @@
+{
+  "name": "AI Document Processor",
+  "description": "An application that uses various AI models to extract text from images, summarize content, suggest titles, and compile it into a single, editable document.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
