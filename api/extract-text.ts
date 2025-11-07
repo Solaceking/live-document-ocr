@@ -147,11 +147,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     result = await handleOpenAICompatibleText(body, "https://api.openai.com/v1/chat/completions", "gpt-4o-mini", openaiApiKey);
                     break;
                 case 'gemini':
-                default:
+                default: {
                     const geminiApiKey = process.env.GEMINI_API_KEY;
-                    if (!geminiApiKey) throw new Error('GEMINI_API_KEY is not configured.');
-                    result = await handleGeminiText(body, geminiApiKey);
+                    const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+                    if (geminiApiKey) {
+                        result = await handleGeminiText(body, geminiApiKey);
+                    } else if (deepseekApiKey) {
+                        // Fallback to Deepseek if Gemini is not configured
+                        result = await handleOpenAICompatibleText(body, "https://api.deepseek.com/chat/completions", "deepseek-chat", deepseekApiKey);
+                    } else {
+                        throw new Error('No suitable API key configured. Set GEMINI_API_KEY or DEEPSEEK_API_KEY.');
+                    }
                     break;
+                }
             }
             return res.status(200).send({ result });
         }
@@ -171,11 +179,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     await handleOpenAICompatibleStream(res, body, "https://api.openai.com/v1/chat/completions", "gpt-4o", openaiApiKey);
                     break;
                 case 'gemini':
-                default:
+                default: {
                     const geminiApiKey = process.env.GEMINI_API_KEY;
-                    if (!geminiApiKey) throw new Error('GEMINI_API_KEY is not configured.');
-                    await handleGeminiStream(res, body, geminiApiKey);
+                    const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+                    if (geminiApiKey) {
+                        await handleGeminiStream(res, body, geminiApiKey);
+                    } else if (deepseekApiKey) {
+                        // Fallback to Deepseek streaming endpoint if Gemini is not configured
+                        await handleOpenAICompatibleStream(res, body, "https://api.deepseek.com/chat/completions", "deepseek-vl-chat", deepseekApiKey);
+                    } else {
+                        throw new Error('No suitable API key configured. Set GEMINI_API_KEY or DEEPSEEK_API_KEY.');
+                    }
                     break;
+                }
             }
             return res.end();
         }
